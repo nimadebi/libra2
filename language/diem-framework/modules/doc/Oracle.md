@@ -303,6 +303,15 @@
 
 
 
+<a name="0x1_Oracle_DUPLICATE_VOTE"></a>
+
+
+
+<pre><code><b>const</b> <a href="Oracle.md#0x1_Oracle_DUPLICATE_VOTE">DUPLICATE_VOTE</a>: u64 = 150005;
+</code></pre>
+
+
+
 <a name="0x1_Oracle_VOTE_ALREADY_DELEGATED"></a>
 
 
@@ -539,7 +548,7 @@
 
   // <b>if</b> the sender has voted, do nothing
   <b>if</b> (<a href="../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_contains">Vector::contains</a>&lt;address&gt;(&upgrade_oracle.validators_voted, &sender)) {
-    <b>assert</b>(<b>false</b>, <a href="../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_argument">Errors::invalid_argument</a>(<a href="Oracle.md#0x1_Oracle_VOTE_TYPE_INVALID">VOTE_TYPE_INVALID</a>));
+    <b>assert</b>(<b>false</b>, <a href="../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_invalid_argument">Errors::invalid_argument</a>(<a href="Oracle.md#0x1_Oracle_DUPLICATE_VOTE">DUPLICATE_VOTE</a>));
   };
 
   <b>let</b> vote_weight = <a href="Oracle.md#0x1_Oracle_get_weight">get_weight</a>(sender, <a href="Oracle.md#0x1_Oracle_VOTE_TYPE_UPGRADE">VOTE_TYPE_UPGRADE</a>);
@@ -581,9 +590,19 @@
 <summary>Implementation</summary>
 
 
-<pre><code><b>public</b> <b>fun</b> <a href="Oracle.md#0x1_Oracle_revoke_my_votes">revoke_my_votes</a>(sender: &signer) <b>acquires</b> <a href="Oracle.md#0x1_Oracle_Oracles">Oracles</a> {
+<pre><code><b>public</b> <b>fun</b> <a href="Oracle.md#0x1_Oracle_revoke_my_votes">revoke_my_votes</a>(sender: &signer) <b>acquires</b> <a href="Oracle.md#0x1_Oracle_Oracles">Oracles</a>, <a href="Oracle.md#0x1_Oracle_VoteDelegation">VoteDelegation</a> {
   <b>let</b> addr = <a href="../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(sender);
   <a href="Oracle.md#0x1_Oracle_revoke_vote">revoke_vote</a>(addr);
+
+  <b>let</b> del = borrow_global&lt;<a href="Oracle.md#0x1_Oracle_VoteDelegation">VoteDelegation</a>&gt;(<a href="../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(sender));
+  <b>let</b> l = <a href="../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_length">Vector::length</a>&lt;address&gt;(&del.delegates);
+  <b>let</b> i = 0;
+  <b>while</b> (i &lt; l) {
+    <b>let</b> addr = *<a href="../../../../../../move-stdlib/docs/Vector.md#0x1_Vector_borrow">Vector::borrow</a>&lt;address&gt;(&del.delegates, i);
+    <a href="Oracle.md#0x1_Oracle_revoke_vote">revoke_vote</a>(addr);
+    i = i + 1;
+  };
+
 }
 </code></pre>
 
@@ -789,8 +808,10 @@
   <b>assert</b>(<a href="../../../../../../move-stdlib/docs/Signer.md#0x1_Signer_address_of">Signer::address_of</a>(vm) == <a href="CoreAddresses.md#0x1_CoreAddresses_DIEM_ROOT_ADDRESS">CoreAddresses::DIEM_ROOT_ADDRESS</a>(), <a href="../../../../../../move-stdlib/docs/Errors.md#0x1_Errors_requires_role">Errors::requires_role</a>(150003));
   <b>let</b> upgrade_oracle = &<b>mut</b> borrow_global_mut&lt;<a href="Oracle.md#0x1_Oracle_Oracles">Oracles</a>&gt;(<a href="CoreAddresses.md#0x1_CoreAddresses_DIEM_ROOT_ADDRESS">CoreAddresses::DIEM_ROOT_ADDRESS</a>()).upgrade;
   <b>let</b> threshold = <a href="Oracle.md#0x1_Oracle_get_threshold">get_threshold</a>(<a href="Oracle.md#0x1_Oracle_VOTE_TYPE_PROPORTIONAL_VOTING_POWER">VOTE_TYPE_PROPORTIONAL_VOTING_POWER</a>);
+
   <b>let</b> result = <a href="Oracle.md#0x1_Oracle_check_consensus">check_consensus</a>(&upgrade_oracle.vote_counts, threshold);
-  upgrade_oracle.consensus = result
+  upgrade_oracle.consensus = result;
+  upgrade_oracle.vote_window = <a href="DiemBlock.md#0x1_DiemBlock_get_current_block_height">DiemBlock::get_current_block_height</a>() - 1;
 }
 </code></pre>
 

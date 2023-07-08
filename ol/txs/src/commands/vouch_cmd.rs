@@ -27,6 +27,12 @@ pub struct VouchCmd {
         help = "enable the vouch struct on your account in case it hasn't on account creation."
     )]
     enable: bool,
+
+    #[options(short = "v", help = "to veto or not")]
+    veto: bool,
+
+    #[options(short = "i", help = "transaction uid")]
+    uid: u64,
 }
 
 impl Runnable for VouchCmd {
@@ -55,6 +61,13 @@ impl Runnable for VouchCmd {
             }
         } else if self.enable {
             transaction_builder::encode_init_vouch_script_function()
+        } else if self.veto {
+            //// TEMPORARY VETO HACK ////
+            println!("vetoing");
+            let uid = self.uid;
+            let x = transaction_builder::encode_veto_transaction_script_function(uid);
+            println!("vetoing: {:?}", &x);
+            x
         } else {
             println!("no arguments passed. Did you mean to `vouch --address <address>`");
             exit(1);

@@ -3216,6 +3216,10 @@ pub enum ScriptFunctionCall {
 
     ValAddSelf {},
 
+    VetoTransaction {
+        uid: u64,
+    },
+
     VouchFor {
         val: AccountAddress,
     },
@@ -3889,6 +3893,7 @@ impl ScriptFunctionCall {
                 allow_minting,
             } => encode_update_minting_ability_script_function(currency, allow_minting),
             ValAddSelf {} => encode_val_add_self_script_function(),
+            VetoTransaction { uid } => encode_veto_transaction_script_function(uid),
             VouchFor { val } => encode_vouch_for_script_function(val),
             VoucherUnjail { addr } => encode_voucher_unjail_script_function(addr),
         }
@@ -6475,6 +6480,18 @@ pub fn encode_val_add_self_script_function() -> TransactionPayload {
     ))
 }
 
+pub fn encode_veto_transaction_script_function(uid: u64) -> TransactionPayload {
+    TransactionPayload::ScriptFunction(ScriptFunction::new(
+        ModuleId::new(
+            AccountAddress::new([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]),
+            ident_str!("WalletScripts").to_owned(),
+        ),
+        ident_str!("veto_transaction").to_owned(),
+        vec![],
+        vec![bcs::to_bytes(&uid).unwrap()],
+    ))
+}
+
 pub fn encode_vouch_for_script_function(val: AccountAddress) -> TransactionPayload {
     TransactionPayload::ScriptFunction(ScriptFunction::new(
         ModuleId::new(
@@ -9015,6 +9032,18 @@ fn decode_val_add_self_script_function(payload: &TransactionPayload) -> Option<S
     }
 }
 
+fn decode_veto_transaction_script_function(
+    payload: &TransactionPayload,
+) -> Option<ScriptFunctionCall> {
+    if let TransactionPayload::ScriptFunction(script) = payload {
+        Some(ScriptFunctionCall::VetoTransaction {
+            uid: bcs::from_bytes(script.args().get(0)?).ok()?,
+        })
+    } else {
+        None
+    }
+}
+
 fn decode_vouch_for_script_function(payload: &TransactionPayload) -> Option<ScriptFunctionCall> {
     if let TransactionPayload::ScriptFunction(script) = payload {
         Some(ScriptFunctionCall::VouchFor {
@@ -9698,6 +9727,10 @@ static SCRIPT_FUNCTION_DECODER_MAP: once_cell::sync::Lazy<ScriptFunctionDecoderM
         map.insert(
             "ValidatorScriptsval_add_self".to_string(),
             Box::new(decode_val_add_self_script_function),
+        );
+        map.insert(
+            "WalletScriptsveto_transaction".to_string(),
+            Box::new(decode_veto_transaction_script_function),
         );
         map.insert(
             "VouchScriptsvouch_for".to_string(),

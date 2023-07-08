@@ -142,9 +142,9 @@
           <b>let</b> miner_subsidy = count * proof_price;
 
           // don't pay <b>while</b> we are in recovery mode, since that creates a frontrunning opportunity
-          <b>if</b> (!<a href="RecoveryMode.md#0x1_RecoveryMode_is_recovery">RecoveryMode::is_recovery</a>()){
+          // <b>if</b> (!<a href="RecoveryMode.md#0x1_RecoveryMode_is_recovery">RecoveryMode::is_recovery</a>()){
             <a href="FullnodeSubsidy.md#0x1_FullnodeSubsidy_distribute_fullnode_subsidy">FullnodeSubsidy::distribute_fullnode_subsidy</a>(vm, addr, miner_subsidy);
-          }
+          // }
 
         };
 

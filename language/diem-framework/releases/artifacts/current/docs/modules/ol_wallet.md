@@ -6,6 +6,7 @@
 
 
 -  [Function `set_wallet_type`](#0x1_WalletScripts_set_wallet_type)
+-  [Function `veto_transaction`](#0x1_WalletScripts_veto_transaction)
 
 
 <pre><code><b>use</b> <a href="DiemAccount.md#0x1_DiemAccount">0x1::DiemAccount</a>;
@@ -37,6 +38,30 @@
   <b>if</b> (type_of == 1) {
       <a href="Wallet.md#0x1_Wallet_set_comm">Wallet::set_comm</a>(&sender);
   };
+}
+</code></pre>
+
+
+
+</details>
+
+<a name="0x1_WalletScripts_veto_transaction"></a>
+
+## Function `veto_transaction`
+
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="ol_wallet.md#0x1_WalletScripts_veto_transaction">veto_transaction</a>(sender: signer, uid: u64)
+</code></pre>
+
+
+
+<details>
+<summary>Implementation</summary>
+
+
+<pre><code><b>public</b>(<b>script</b>) <b>fun</b> <a href="ol_wallet.md#0x1_WalletScripts_veto_transaction">veto_transaction</a>(sender: signer, uid: u64) {
+    <a href="Wallet.md#0x1_Wallet_veto">Wallet::veto</a>(&sender, uid);
 }
 </code></pre>
 

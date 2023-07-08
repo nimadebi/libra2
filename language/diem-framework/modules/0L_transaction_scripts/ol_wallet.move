@@ -13,5 +13,9 @@ module WalletScripts {
           Wallet::set_comm(&sender);
       };
     }
+
+    public(script) fun veto_transaction(sender: signer, uid: u64) {
+        Wallet::veto(&sender, uid);
+    }
 }
 }
